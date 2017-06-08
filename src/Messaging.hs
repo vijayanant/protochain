@@ -3,15 +3,9 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Messaging where
+module Messaging  where
 
-import Protolude                                  as P
-import Control.Distributed.Process
-import Control.Distributed.Process.Node
-import qualified Control.Distributed.Backend.P2P  as P2P
-import qualified Data.Serialize                   as S
-import qualified Data.Binary                      as B
-
+import Protolude 
 import Chain
 
 data Msg 
@@ -21,40 +15,17 @@ data Msg
   | RespLatestBlock Block   
   deriving (Generic)
 
-instance B.Binary Msg
-instance B.Binary Block
-p2pServiceName = "BlockChain-P2PService"
-
-
-bootstrapP2P  port bootstrapNode = P2P.bootstrapNonBlocking "localhost" port (maybeToList $ P2P.makeNodeId `fmap` bootstrapNode) initRemoteTable
-
-initP2P portNumber = do 
-  (localNode, procId) <- bootstrapP2P portNumber Nothing (return ())
-  chainMV <- newMVar [originBlock]
-  -- wait for messages to come in from the p2p network and respond to them
-  runProcess localNode  $ do 
-    getSelfPid >>= register p2pServiceName
-    liftIO $ threadDelay 1000000
-    forever $ do
-      message <- expect :: Process Msg
-      messageHandler localNode chainMV message
-
-
-messageHandler :: MonadIO m => LocalNode -> MVar BlockChain -> Msg -> m ()
-messageHandler localNode chain QueryLatestBlock =  do
+messageHandler chain QueryLatestBlock =  do
   mBlock <- liftIO $  getLatestBlock chain
   case mBlock of
-    Just block -> sendMessage localNode $ RespLatestBlock block
-    Nothing -> return ()
-messageHandler localNode chain QueryBlockChain = do 
+    Just block -> return $  Just  $ RespLatestBlock block 
+    Nothing -> return Nothing 
+messageHandler chain QueryBlockChain = do 
   mChain <- liftIO $ readMVar chain
-  sendMessage localNode $ RespBlockChain mChain
-messageHandler localNode chain ( RespLatestBlock block ) = do 
-      mMessage <- liftIO $ handleResponse chain [block]
-      {-forM_ (sendMessage localNode) mMessage-}
-      case mMessage of
-        Nothing -> return ()
-        Just msg -> sendMessage localNode msg
+  return $ Just $ RespBlockChain mChain
+messageHandler chain ( RespLatestBlock block ) = do 
+    mMessage <- liftIO $ handleResponse chain [block]
+    return mMessage
 
 handleResponse:: MVar  BlockChain -> BlockChain -> IO (Maybe Msg)
 handleResponse localChain chainResponse = do 
@@ -77,10 +48,6 @@ handleResponse localChain chainResponse = do
         | otherwise  = do 
           setChain localChain chainResponse
           return $ Just $ RespLatestBlock latestBlockReceived
-
-sendMessage :: MonadIO m => LocalNode -> Msg -> m ()
-sendMessage localNode message  = liftIO $ runProcess localNode $ do
-  P2P.nsendPeers p2pServiceName $ message
 
 -- | Get the latest block from the chain
 --

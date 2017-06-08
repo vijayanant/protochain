@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Chain, Messaging
+  exposed-modules:     Chain, Messaging, P2P
   build-depends:
     base              >= 4.7    && < 5.0,
     bytestring        >= 0.10   && < 0.11,
