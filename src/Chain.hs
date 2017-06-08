@@ -3,15 +3,14 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Chain (
-) where
+module Chain where
 
 import Protolude hiding (get, put)
 
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Crypto.Hash
 import Data.Int (Int64)
-{-import Data.Aeson hiding (json)-}
+import Data.Aeson hiding (json)
 
 import qualified Data.Text as T
 import qualified Data.Serialize as S
@@ -115,10 +114,10 @@ proofOfWork idx prevHash ts bdata' = calcNonce 0
 
 isBrokenBlock :: Block -> Block -> Maybe Text
 isBrokenBlock prev new 
-  | blockIndex prev + 1 /= blockIndex new       = Just "Index is invalid"
-  | blockHash prev /= previousHash new          = Just "PreviousHash is invalid"
-  | calculateHashForBlock new /= blockHash new  = Just "Hash is invalid"
-  | otherwise                                  = Nothing
+  | blockIndex prev + 1       /= blockIndex new    = Just "Index is invalid"
+  | blockHash prev            /= previousHash new  = Just "PreviousHash is invalid"
+  | calculateHashForBlock new /= blockHash new     = Just "Hash is invalid"
+  | otherwise                                     = Nothing
 
 isBrokenChain :: BlockChain -> Maybe Text
 isBrokenChain (b0:b1:bs) = isBrokenBlock b0 b1 <|> isBrokenChain bs
@@ -135,6 +134,30 @@ addBlock b (pb:bs)
   | isNothing (isBrokenBlock pb b) = b : pb : bs
   | otherwise = pb : bs
 
+
+-------------------------------------------------------------------------------
+-- Serialization
+-------------------------------------------------------------------------------
+
+instance ToJSON Block where
+  toJSON (Block i ph t d n h) =
+    object [ "bindex"       .= i
+           , "previousHash" .= encode64 ph
+           , "timestamp"    .= toJSON t
+           , "bdata"        .= encode64 d
+           , "nonce"        .= toJSON n
+           , "bhash"        .= encode64 h
+           ]
+
+instance FromJSON Block where
+  parseJSON (Object o) =
+    Block <$>  o .: "bindex"
+          <*> (o .: "previousHash" >>= decode64)
+          <*> (o .: "timestamp"    >>= pure)
+          <*> (o .: "bdata"        >>= decode64)
+          <*> (o .: "nonce"        >>= pure)
+          <*> (o .: "bhash"        >>= decode64)
+  parseJSON _ = mzero
 
 encode64 :: ByteString -> Text
 encode64 = decodeUtf8 . BS64.encode
