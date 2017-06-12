@@ -15,10 +15,11 @@ import Chain
 instance B.Binary Msg
 instance B.Binary Block
 
-p2pServiceName = "BlockChain-P2PService"
+p2pServiceName = "protoChain-P2PService"
 
 bootstrapP2P hostname port bootstrapNode = P2P.bootstrapNonBlocking hostname  port (maybeToList $ P2P.makeNodeId `fmap` bootstrapNode) initRemoteTable
 
+initP2P :: LocalNode -> MVar BlockChain -> IO ()
 initP2P  localNode chainMV = do 
   -- wait for messages to come in from the p2p network and respond to them
   runProcess localNode  $ do 

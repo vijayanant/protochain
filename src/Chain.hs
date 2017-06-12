@@ -89,7 +89,7 @@ createNewBlock :: Block -> Timestamp -> BlockData -> Block
 createNewBlock previousBlock timestamp' blockData' = 
   Block i phash timestamp' blockData' nonce' bhash
     where 
-      i = blockIndex previousBlock
+      i = blockIndex previousBlock  + 1
       phash = blockHash previousBlock
       nonce' = proofOfWork i phash timestamp' blockData' 
       bhash = calculateHash i phash timestamp' blockData' nonce'
@@ -102,7 +102,8 @@ createNewBlock previousBlock timestamp' blockData' =
 proofOfWork ::  Index -> Hash -> Timestamp -> BlockData -> Nonce
 proofOfWork idx prevHash ts bdata' = calcNonce 0  
   where
-    dbits = round $ logBase (2 :: Float) $ fromIntegral idx 
+    {-dbits = round $ logBase (2 :: Float) $ fromIntegral idx -}
+    dbits = 4
     prefix = toS $ replicate dbits '0' 
 
     calcNonce n
