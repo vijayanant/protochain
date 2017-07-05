@@ -3,7 +3,15 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Chain where
+module Chain (
+  Block(..),
+  BlockChain,
+  addBlock,
+  isBrokenChain,
+  currentTime,
+  createNewBlock,
+  originBlock,
+)where
 
 import Protolude hiding (get, put)
 
@@ -18,6 +26,7 @@ import qualified Data.ByteArray as BA
 import qualified Data.ByteString.Char8 as BB
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Base64 as BS64
+
 --------------------------------------
 -- Types
 --------------------------------------

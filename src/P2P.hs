@@ -1,6 +1,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module P2P where
+module P2P (
+  bootstrapP2P,
+  initP2P,
+  sendMessage,
+) where
 
 import Protolude                                  as P
 import qualified Control.Distributed.Backend.P2P  as P2P
@@ -11,8 +15,8 @@ import Control.Distributed.Process.Node
 
 import Messaging
 import Chain
+import Logging (liftDebug)
 
-import System.Log.Logger
 
 instance B.Binary Msg
 instance B.Binary Block
@@ -29,15 +33,15 @@ initP2P  localNode chainMV isSeed = do
     liftIO $ threadDelay 1000000
     _ <- if isSeed 
     then do 
-      dooDebug $ "This is a seed server... NOT requesting Chain from others"
+      liftDebug $ "This is a seed server... NOT requesting Chain from others"
     else do
       {-Ask for latest chain from Peers at the server startup !-}
-      dooDebug $ "This is not a seed server... Requesting Chain from others"
+      liftDebug $ "This is not a seed server... Requesting Chain from others"
       sendMessage localNode MsgQueryBlockChain
     
     forever $ do
       message <- expect :: Process Msg
-      dooDebug $ "Received message " ++ (messageType message)
+      liftDebug $ "Received message " ++ (messageType message)
       {-return $ debugM "proto-chain" "Received  message "-}
       mRespMessage <- messageHandler chainMV message
       case mRespMessage of
@@ -47,6 +51,3 @@ initP2P  localNode chainMV isSeed = do
 sendMessage :: MonadIO m => LocalNode -> Msg -> m ()
 sendMessage localNode message  = liftIO $ runProcess localNode $ do
   P2P.nsendPeers p2pServiceName $ message
-
-dooDebug str = liftIO $ debugM "proto-chain" (show str)
-

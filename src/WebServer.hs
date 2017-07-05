@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-module WebServer where
+module WebServer (
+  httpServer,
+) where
 
 import Protolude
 import Chain
@@ -9,7 +11,7 @@ import Messaging
 import Common
 import Web.Scotty as S
 import Control.Distributed.Process.Node
-import System.Log.Logger
+import Logging (liftDebug)
 
 type HostName = [Char]
 type PortNumber = Int
@@ -17,7 +19,7 @@ type PortNumber = Int
 
 httpServer :: LocalNode ->  HostName ->  PortNumber -> MVar BlockChain ->  IO ()
 httpServer localNode host httpPort chain = do 
-  doDebug $ "Initialising WebServer..."
+  liftDebug $ "Initialising WebServer..."
   scotty httpPort $ do 
   
     S.get "/blocks" $ do 
@@ -32,7 +34,7 @@ httpServer localNode host httpPort chain = do
         Just b -> do 
           liftIO $ sendMessage localNode $  MsgLatestBlock b
           json b
-  doDebug "Done initialising WebServer."
+  liftDebug "Done initialising WebServer."
 
 
 mineBlockAndUpdateChain :: MVar BlockChain -> Maybe Block -> IO (Maybe Block)
@@ -44,7 +46,5 @@ mineBlockAndUpdateChain chain (Just block) =
     let newChain = addBlock newBlock chain'
     return (newChain, Just newBlock)
 
-doDebug :: (MonadIO m) =>  [Char] -> m ()
-doDebug str = liftIO $ debugM "proto-chain" (show str)
 
 

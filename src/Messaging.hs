@@ -2,7 +2,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Messaging  where
+module Messaging (
+  Msg(..),
+  messageType,
+  messageHandler,
+) where
 
 import Protolude 
 import Common
@@ -18,10 +22,10 @@ data Msg
 type MessageType = [Char]
 
 messageType :: Msg -> MessageType
-messageType MsgQueryBlockChain = "MsgQueryBlockChain"
-messageType MsgQueryLatestBlock = "MsgQueryLatestBlock"
-messageType ( MsgBlockChain _ ) = "MsgBlockChain"
-messageType ( MsgLatestBlock _ ) = "MsgLatestBlock"
+messageType MsgQueryBlockChain    = "MsgQueryBlockChain"
+messageType MsgQueryLatestBlock   = "MsgQueryLatestBlock"
+messageType ( MsgBlockChain _ )   = "MsgBlockChain"
+messageType ( MsgLatestBlock _ )  = "MsgLatestBlock"
 
 messageHandler chain MsgQueryLatestBlock =  do
   mBlock <- liftIO $  getLatestBlock chain

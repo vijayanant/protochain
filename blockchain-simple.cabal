@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Chain, Messaging, P2P, Common, WebServer
+  exposed-modules:     Chain, Messaging, P2P, Common, WebServer, Logging
   build-depends:
     base              >= 4.7    && < 5.0,
     bytestring        >= 0.10   && < 0.11,
@@ -31,6 +31,7 @@ library
     distributed-process-p2p >= 0.1.3.2 && < 0.1.3.3,
     scotty >= 0.11 && < 0.12,
     hslogger,
+    mtl,
     protolude         >= 0.1.10 && < 0.2
 
   default-language:    Haskell2010
@@ -41,8 +42,6 @@ executable blockchain-simple-exe
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , blockchain-simple
-                     , hslogger
-                     , mtl
   default-language:    Haskell2010
 
 test-suite blockchain-simple-test
