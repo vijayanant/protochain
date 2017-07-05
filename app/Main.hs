@@ -6,6 +6,7 @@ import WebServer
 import P2P
 import Chain
 
+import Data.Maybe                       (isNothing)
 import Control.Monad.Trans
 import System.Log.Formatter
 import System.Log.Handler               (setFormatter)
@@ -54,7 +55,7 @@ main = do
   (localNode, procId) <- bootstrapP2P host port_P2P seed (return ())
   liftDebug $ "Bootstrapping P2P Done..."
   
-  initP2P localNode chainMV
+  initP2P localNode chainMV $ isNothing seed 
   liftDebug $ "Initialising P2P Done..."
 
   httpServer localNode host (read port_Http) chainMV 

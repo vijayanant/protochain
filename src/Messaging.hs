@@ -15,6 +15,14 @@ data Msg
   | MsgLatestBlock Block   
   deriving (Show, Generic)
 
+type MessageType = [Char]
+
+messageType :: Msg -> MessageType
+messageType MsgQueryBlockChain = "MsgQueryBlockChain"
+messageType MsgQueryLatestBlock = "MsgQueryLatestBlock"
+messageType ( MsgBlockChain _ ) = "MsgBlockChain"
+messageType ( MsgLatestBlock _ ) = "MsgLatestBlock"
+
 messageHandler chain MsgQueryLatestBlock =  do
   mBlock <- liftIO $  getLatestBlock chain
   case mBlock of
@@ -26,6 +34,9 @@ messageHandler chain MsgQueryBlockChain = do
 messageHandler chain ( MsgLatestBlock block ) = do 
     mMessage <- liftIO $ handleResponse chain [block]
     return mMessage
+messageHandler chain (MsgBlockChain chainReceived) = do
+  mMessage <- liftIO $ handleResponse chain chainReceived
+  return mMessage 
 
 handleResponse:: MVar  BlockChain -> BlockChain -> IO (Maybe Msg)
 handleResponse localChain chainResponse = do 
@@ -44,7 +55,8 @@ handleResponse localChain chainResponse = do
       prepareResponse latestBlockReceived latestBlockHeld
         | blockHash latestBlockHeld  == previousHash latestBlockReceived = do
           addBlockMVar latestBlockReceived localChain
-          return $ Just $ MsgLatestBlock latestBlockReceived
+          return Nothing -- $ Just $ MsgLatestBlock latestBlockReceived
+        | length chainResponse == 1 = return Nothing
         | otherwise  = do 
           setChain localChain chainResponse
-          return $ Just $ MsgLatestBlock latestBlockReceived
+          return Nothing -- $ Just $ MsgLatestBlock latestBlockReceived
