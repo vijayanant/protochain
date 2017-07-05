@@ -13,7 +13,7 @@ data Msg
   | MsgQueryBlockChain
   | MsgBlockChain BlockChain
   | MsgLatestBlock Block   
-  deriving (Generic)
+  deriving (Show, Generic)
 
 messageHandler chain MsgQueryLatestBlock =  do
   mBlock <- liftIO $  getLatestBlock chain

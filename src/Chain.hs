@@ -102,8 +102,8 @@ createNewBlock previousBlock timestamp' blockData' =
 proofOfWork ::  Index -> Hash -> Timestamp -> BlockData -> Nonce
 proofOfWork idx prevHash ts bdata' = calcNonce 0  
   where
-    {-dbits = round $ logBase (2 :: Float) $ fromIntegral idx -}
-    dbits = 4
+    dbits = round $ logBase (2 :: Float) $ fromIntegral idx 
+    {-dbits = 4-}
     prefix = toS $ replicate dbits '0' 
 
     calcNonce n
